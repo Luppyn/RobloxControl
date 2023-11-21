@@ -61,28 +61,41 @@ def getPythonFile(**kwargs):
         pyfiledir = filedialog.askopenfilename(title="Select python file", filetypes=[("Python Files", "*.py")])
         highImport(pyfiledir)
 
+# Save in Solid Disk
+def json_handle():
+    try:
+        with open("modules.json", "r") as file:
+            json_content = json.load(file)
+
+        # Verificar se a chave já existe
+        chave_existente = any(pyfilename in dicionario for dicionario in json_content)
+
+        if not chave_existente:
+            # Adicionar novo objeto ao conteúdo existente
+            json_content.append({f"{pyfilename}": str(custom_module)})
+
+            # Escrever de volta no arquivo
+            with open("modules.json", "w") as file:
+                json.dump(json_content, file, indent=2)
+        else:
+            messagebox.showwarning(title="Aviso", message="Módulo já importado")
+
+    except FileNotFoundError:
+        # Se o arquivo não existe, criar um novo
+        with open("modules.json", 'w') as file:
+            json.dump([{f"{pyfilename}": str(custom_module)}], file, indent=2)
+
 
 def highImport(pyfiledir:str, **kwargs):
     try:
-        global custom_module, pyfilename, module_file
+        global pyfilename, custom_module
         pyfilename = pyfiledir.split('/')[-1].replace(".py", "")
         
         specifications = iu.spec_from_file_location(pyfilename, pyfiledir)
         custom_module = iu.module_from_spec(specifications)
-        print(custom_module)
         specifications.loader.exec_module(custom_module)
-        
-        try:
-            with open('modules.json', 'a+', encoding='utf-8') as file:
 
-                file.seek(0)
-
-                modules={f"{pyfilename}": str(custom_module)}
-                json.dump(modules, file, indent=2, ensure_ascii=False)
-                messagebox.showinfo(title="Import", message="Módulo carregado com sucesso.")
-        except Exception as e:
-            print(e)
-
+        json_handle()
 
     except:
         messagebox.showerror(title="Erro", message="Falha ao importar arquivo")
@@ -93,34 +106,10 @@ def highImport(pyfiledir:str, **kwargs):
         messagebox.showwarning(title="Aviso", message="Não foi possível listar o módulo.")
 
 
-
-
-
-
-
-
-def getTextContent():
-    end_time = datetime.datetime.now() + datetime.timedelta(seconds=1)
-    while datetime.datetime.now() < end_time:
-        text = text_box.get(1.0, END).splitlines() # Utilizando o splitlines, consigo separar cada comando em listas
-        return text
-
-
 def execute():
-    if custom_module != None:
-        text = getTextContent()
-        for line in text:
-            with open("modules.txt", "r") as file:
-                for file.readline in text:
-                    if file.readline == line:
-                        args = text.split(f"{pyfilename}")[1]
-                        args2 = args.split("(")[1].split(")")[0] # Tem colchete, sendo assim é possível transformar em lista
-                        args3 = args2.split("[")[1].split(']')[0]             
-                            
-                        try:
-                            ((importlib.reload().__dict__[pyfilename])(args3))
-                        except:
-                            messagebox.showerror(title="Erro", message="Erro no código escrito")
+    text = text_box.get(1.0, END).splitlines()
+
+
 
 
 root.mainloop()
