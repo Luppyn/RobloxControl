@@ -77,6 +77,8 @@ def json_handle():
             # Escrever de volta no arquivo
             with open("modules.json", "w") as file:
                 json.dump(json_content, file, indent=2)
+            
+            messagebox.showinfo(title="Info", message="Módulo importado com sucesso")
         else:
             messagebox.showwarning(title="Aviso", message="Módulo já importado")
 
@@ -109,7 +111,37 @@ def highImport(pyfiledir:str, **kwargs):
 def execute():
     text = text_box.get(1.0, END).splitlines()
 
+    try:
 
+        print(text)
+
+        for line in text:
+            if line[-1] == ";":
+                if line.find("(") != -1 & line.find(")") != -1:
+                    line = line[:line.find("(")]
+                    args = line[line.find("("):line.find(")")]
+            else:
+                messagebox.showerror(title="Sintax Error", message=f"Missing ';' in line {text.index(f'{line}')}")
+                break
+
+            
+        with open("modules.json", "r", encoding="utf") as file:
+                json_content = json.load(file)
+
+                for module in json_content:
+                    for module_name in module:
+                        if line == module_name:
+                            ...
+
+                        else:
+                            break
+
+                        #(importlib.reload().__dict__[pyfilename])(args3)
+
+
+    except IndexError:
+        # Isso ocorre porque existe um breakline após um ";"
+        ...
 
 
 root.mainloop()
