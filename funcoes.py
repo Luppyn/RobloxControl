@@ -24,7 +24,7 @@ def detecting_window(maximize_window=True):
         while roblox_window.exists(timeout=10):
             return True
     except Exception as exc:
-        return exc
+        return None
 
 
 def walk(direction='w', walk_duration=1.0, _pause=False):
@@ -34,7 +34,7 @@ def walk(direction='w', walk_duration=1.0, _pause=False):
 
 # sprint_toggle it means enable and disable, like a switch or a button.
 # two_keys it means press twice time the same button to enable sprint.
-def sprintwalk(sprint_key='ctrl', sprint_toggle=True, two_keys=False, direction=('w', 'a', 's', 'd'), walk_duration=1.0, _interval=0.00002):
+def sprint_walk(sprint_key='ctrl', sprint_toggle=True, two_keys=False, direction=('w', 'a', 's', 'd'), walk_duration=1.0, _interval=0.00002):
     if sprint_toggle:
         pdi.press(sprint_key)
         
@@ -159,7 +159,7 @@ def close_inventory():
     pdi.press('escape')
 
 
-def jump(key=' ', quantity=1):
+def jump(key='space', quantity=1):
     if pdi.isValidKey(key):
         pdi.keyDown(key)
         sleep(quantity/2)
@@ -193,32 +193,43 @@ def camera_move(_interval=0.4, _arrow_accurance=0.75, _mouse_accurance=0.0903, r
         sleep(_arrow_accurance)
         pdi.keyUp(movement)
         
-# Need to add lambda for each command inside of commands (except: loop function inside of executeBoth)
-def loop(time:float, commands:list, infinite=False):
-    while infinite:
+# Need to add lambda for each command inside of commands
+# if on parameter 'time' has no float value, the loop it will be infinite
+def loop(*time:float, commands:list):
+
+    def repeat(time:float):
         end_time = datetime.datetime.now() + datetime.timedelta(seconds=time)
         while datetime.datetime.now() < end_time:
             for command in commands:
                 command()
-            try:
-                if keyboard.is_pressed('escape'):
+        
+            if keyboard.is_pressed('END'):
+                try:
+                    exit()
+                except Exception:
                     break
-            except Exception:
-                break
-    
 
-
+    if not isinstance(time, float):
+        while True:
+            repeat(1.0)
+           
+    repeat(time)
+                
 # Need to add lambda for each command inside of commands
 def execute_both(commands:list):  
     Parallel(n_jobs=-1, backend='threading')(delayed(command)() for command in commands)
 
 
-
 # Test the functions
 if detecting_window():
-    loop(time=1, infinite=True, commands=[
-        lambda:execute_both(commands=[
-            lambda:use_item('left'),
-            lambda:press_key(['e', 'r']),
-        ])
+    loop(commands=[
+        lambda:walk(direction='a'),
+        lambda:sleep(0.5),
+        lambda:jump(),
+        lambda:sleep(0.5),      
+        lambda:walk(direction='d'),
+        lambda:sleep(0.5),
+        lambda:jump(),
+        lambda:sleep(0.5),
     ])
+
